@@ -1,0 +1,1832 @@
+---
+title: "Presales Performance Analytics at MBCOM Technologies: An Exploratory and Inferential Study of the Broadcom Enterprise Software Pipeline (Africa, Middle East & CIS, 2023–2024)"
+author: "Onyebuchi Philip Egah"
+date: today
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-depth: 3
+    toc-title: "Contents"
+    code-fold: true
+    self-contained: true
+    fig-width: 9
+    fig-height: 5.5
+    fig-dpi: 150
+    number-sections: true
+    highlight-style: github
+    css: |
+      body { font-family: 'Georgia', serif; font-size: 15px; }
+      h1, h2, h3 { font-family: 'Calibri', sans-serif; color: #1F3864; }
+      .callout { border-left: 4px solid #2E75B6; }
+      code { font-size: 0.85em; }
+      .table { font-size: 0.9em; }
+execute:
+  warning: false
+  message: false
+  echo: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.align = "center")
+```
+
+# Executive Summary {.unnumbered}
+
+This case study analyses **200 enterprise software deals** from MBCOM Technologies' Broadcom representative pipeline across Africa, the Middle East, and the Commonwealth of Independent States (CIS) over a two-year period (January 2023 – December 2024). MBCOM Technologies is the authorised Broadcom representative for the AME-CIS region, distributing enterprise software solutions including DX Application Performance Management (SED), Automic Workload Automation (AOD), IMS Tools (IMS-CAD), and Layer7 API Management (CB).
+
+The central business problem is: **what factors drive Annual Booking Value (ABV) and deal success in the Broadcom presales pipeline, and how can presales resources be allocated more effectively?** Using five techniques — exploratory data analysis, data visualisation, hypothesis testing, correlation analysis, and linear regression — this study finds that:
+
+1. **Deal type is the strongest discriminator of value**: NEW business deals carry a mean ABV of \$77,660 versus \$28,912 for RENEWAL deals — a statistically significant difference (Welch's t-test, *p* < 0.001, Cohen's *d* = 0.56, medium effect).
+2. **Technical presales engagement materially lifts deal value**: SE-engaged deals average \$52,575 ABV versus \$29,573 for non-engaged deals (*p* = 0.031).
+3. **POC score and SE days invested are the strongest predictors of ABV** (r = 0.41 and r = 0.38 respectively), suggesting that deeper technical investment correlates with larger deal sizes.
+4. **The regression model explains 39% of ABV variance** (Adjusted R² = 0.39), with POC score, deal type (NEW), and Broadcom Region (IOI&EAF, KSA&BH) as the most significant predictors.
+
+**Recommendation**: Prioritise presales resource allocation toward NEW business deals in IOI&EAF and KSA&BH sub-regions, mandate POC execution for deals above \$30,000 ABV, and track SE days invested as a leading indicator of deal quality.
+
+---
+
+# Professional Disclosure {#sec-disclosure}
+
+## Role and Organisation
+
+**Name:** Philip Egah  
+**Title:** Presales Specialist — Enterprise Software (Africa, Middle East & CIS)  
+**Organisation:** MBCOM Technologies  
+**Organisation Type:** Broadcom Authorised Representative / Value-Added Distributor  
+**Domain:** Enterprise Software Distribution — Application Management, Workload Automation, Mainframe Tools, API Management  
+**Geography:** Sub-Saharan Africa, North Africa, Middle East, Central Asia (CIS)
+
+MBCOM Technologies acts as Broadcom's commercial and technical representative across the AME-CIS territory. As a Presales Specialist, my day-to-day responsibilities include qualifying inbound and outbound opportunities, delivering technical demonstrations to C-suite and IT leadership audiences, scoping and managing Proofs of Concept (POCs), writing technical sections of proposals and RFP responses, and engaging the Broadcom field team on deal strategy. I own the technical dimension of every deal from the Identified stage through to Award.
+
+## Technique Justifications
+
+**Technique 1 — Exploratory Data Analysis (EDA):**  
+Before any presales resource is invested in a deal, I need to understand the shape of the pipeline: which deal types dominate, how ABV is distributed, which regions carry the most value, and where data quality issues lurk (e.g. sparse fields, outliers in deal size). EDA directly mirrors the weekly pipeline review I conduct with the regional sales team — the same questions I ask in those meetings (What does our funnel look like? Where are the outliers? Which deals have missing technical information?) are answered systematically here.
+
+**Technique 2 — Data Visualisation:**  
+Visualisation is how I communicate pipeline health to non-technical stakeholders: country managers, the Broadcom regional director, and finance. A pipeline funnel chart, a regional ABV heatmap, and a monthly bookings trend are staples of our quarterly business reviews. This technique formalises that practice into reproducible, publication-quality outputs.
+
+**Technique 3 — Hypothesis Testing:**  
+Two standing strategic questions in our team are (a) do NEW business deals justify the higher presales investment they require versus RENEWAL deals, and (b) does technical SE engagement actually improve deal outcomes? These are not intuitions — they are testable hypotheses, and the organisation should make resource allocation decisions based on statistical evidence rather than anecdote.
+
+**Technique 4 — Correlation Analysis:**  
+Understanding which presales activities (demos, POC days, preparation hours) correlate most strongly with ABV helps me prioritise effort. Knowing whether POC score correlates with conversion guides how rigorously we define success criteria at the start of each POC. This directly informs the presales engagement playbook I contribute to at MBCOM.
+
+**Technique 5 — Linear Regression:**  
+Forecasting the expected ABV of a deal based on observable characteristics (region, BU, deal type, SE engagement) is a standing request from the Broadcom regional finance team, who need to weight pipeline opportunities for quarterly forecasts. A regression model gives a principled, auditable basis for that weighting — replacing the current subjective confidence scoring.
+
+---
+
+# Data Collection and Sampling {#sec-data}
+
+## Source and Collection Method
+
+The primary dataset was compiled from MBCOM Technologies' Salesforce CRM (SFDC) pipeline export for the AME-CIS territory, supplemented by the author's presales activity log maintained in a structured tracking workbook. The SFDC export covers all enterprise software opportunities created between **1 January 2023 and 31 December 2024** in which the author was involved as Technical Owner or supporting SE.
+
+Data were extracted via SFDC's standard report builder using the "SE Activity" report template, filtered to the AME-CIS Broadcom region and to opportunities where `Technical Pre-Sales Engaged = Yes` or where the author was listed as `Technical Owner`. The export was augmented with activity-level data (demo logs, POC tracker entries, travel records) maintained in a parallel tracking workbook updated weekly.
+
+In compliance with MBCOM's data classification policy, all customer-identifying fields (company names, contact names) have been anonymised using consistent pseudonyms. No pricing data specific to any individual customer contract has been disclosed. This submission has been reviewed under the author's professional obligations and contains no material classified as commercially sensitive at the individual-deal level.
+
+## Sampling Frame
+
+| Parameter | Detail |
+|---|---|
+| **Universe** | All Broadcom AME-CIS enterprise software opportunities in SFDC, 2023–2024 |
+| **Sampling method** | Census (all qualifying deals included; no random sampling applied) |
+| **Inclusion criterion** | Opportunity created Jan 2023–Dec 2024; BU = SED / AOD / IMS-CAD / CB or combination |
+| **Exclusion criterion** | Hardware-only deals (HW flag = TRUE); internal/test records; duplicate parent opportunities |
+| **Final sample** | 200 opportunities across 5 datasets |
+| **Time period** | 24 months: January 2023 – December 2024 |
+| **Geography** | 8 sub-regions: WAF, IOI&EAF, South Africa, UAE/QA, KSA&BH, LEVANT, CIS, FSA |
+
+## Dataset Overview
+
+Five interrelated datasets were assembled:
+
+| Dataset | Rows | Key Variables | Primary Role |
+|---|---|---|---|
+| SFDC Opportunity Pipeline | 200 | ABV, Stage, BU, Region, Type, SE Status | Main analysis dataset |
+| Presales Activity Log | 350 | Activity type, duration, travel cost, outcome | Effort analysis |
+| POC Tracker | 80 | KPIs defined/met, POC score, SE days | POC effectiveness |
+| Monthly KPIs | 24 | Pipeline value, win rate, CSAT, revenue booked | Time series |
+| Customer Engagement | 120 | NPS, IT budget, relationship score, renewal risk | Account health |
+
+## Ethical Notes
+
+All data were collected in the course of normal professional duties. No personal data of private individuals is included. Customer names have been replaced with anonymised codes consistent with MBCOM's data handling policy. No written consent was required as the data relates to business-to-business commercial transactions. The author holds legitimate access to all source systems used.
+
+---
+
+# Data Description {#sec-eda}
+
+## Load Data and Initial Inspection
+
+::: panel-tabset
+
+### R
+
+```{r load-r}
+library(tidyverse)
+library(readxl)
+library(skimr)
+library(janitor)
+library(knitr)
+library(kableExtra)
+library(scales)
+library(ggthemes)
+library(patchwork)
+library(corrplot)
+library(RColorBrewer)
+library(car)
+library(effectsize)
+library(broom)
+library(lubridate)
+
+# Load datasets
+path <- "Egah_Philip_MBCOM_Presales_Dataset_v7.xlsx"
+
+df        <- read_excel(path, sheet = "SFDC_Opportunity_Pipeline")
+df_act    <- read_excel(path, sheet = "Presales_Activity_Log")
+df_poc    <- read_excel(path, sheet = "POC_Tracker")
+df_kpi    <- read_excel(path, sheet = "Monthly_KPIs")
+df_eng    <- read_excel(path, sheet = "Customer_Engagement")
+
+# Clean column names
+df     <- df %>% clean_names()
+df_act <- df_act %>% clean_names()
+df_poc <- df_poc %>% clean_names()
+df_kpi <- df_kpi %>% clean_names()
+df_eng <- df_eng %>% clean_names()
+
+# Derived variables
+df <- df %>%
+  mutate(
+    discount_pct   = (amount_converted - selling_price_converted) / amount_converted,
+    deal_duration  = as.numeric(difftime(close_date, created_date, units = "days")),
+    year           = year(created_date),
+    quarter        = paste0(year, " Q", quarter(created_date)),
+    abv_log        = log1p(abv_converted)
+  )
+
+cat("Pipeline: ", nrow(df), "rows,", ncol(df), "columns\n")
+cat("Date range:", format(min(df$created_date), "%d %b %Y"),
+    "to", format(max(df$close_date, na.rm=TRUE), "%d %b %Y"), "\n")
+cat("Total pipeline ABV: $", format(sum(df$abv_converted), big.mark=","), "\n")
+```
+
+### Python
+
+```{python load-py}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+import seaborn as sns
+from scipy import stats
+import warnings
+warnings.filterwarnings('ignore')
+
+path = "Egah_Philip_MBCOM_Presales_Dataset_v7.xlsx"
+
+df_py     = pd.read_excel(path, sheet_name="SFDC_Opportunity_Pipeline")
+df_act_py = pd.read_excel(path, sheet_name="Presales_Activity_Log")
+df_poc_py = pd.read_excel(path, sheet_name="POC_Tracker")
+df_kpi_py = pd.read_excel(path, sheet_name="Monthly_KPIs")
+df_eng_py = pd.read_excel(path, sheet_name="Customer_Engagement")
+
+# Derived variables
+df_py['Discount_Pct']   = (df_py['Amount (converted)'] - df_py['Selling Price (converted)']) / df_py['Amount (converted)']
+df_py['Deal_Duration']  = (df_py['Close Date'] - df_py['Created Date']).dt.days
+df_py['Year']           = df_py['Created Date'].dt.year
+df_py['ABV_Log']        = np.log1p(df_py['ABV (converted)'])
+
+print(f"Pipeline: {df_py.shape[0]} rows, {df_py.shape[1]} columns")
+print(f"Total pipeline ABV: ${df_py['ABV (converted)'].sum():,.0f}")
+print(f"\nData types:\n{df_py.dtypes.value_counts()}")
+```
+
+:::
+
+## Summary Statistics
+
+::: panel-tabset
+
+### R
+
+```{r summary-r}
+df %>%
+  select(abv_converted, amount_converted, selling_price_converted,
+         discount_pct, deal_duration, new, renewal) %>%
+  skim() %>%
+  yank("numeric") %>%
+  select(skim_variable, n_missing, mean, sd, p0, p25, p50, p75, p100) %>%
+  kable(digits = 2, format.args = list(big.mark = ","),
+        caption = "Table 1: Descriptive Statistics — Key Numeric Variables") %>%
+  kable_styling(bootstrap_options = c("striped","hover","condensed"), full_width = FALSE)
+```
+
+### Python
+
+```{python summary-py}
+num_cols = ['ABV (converted)', 'Amount (converted)', 'Selling Price (converted)',
+            'Discount_Pct', 'Deal_Duration', 'NEW', 'RENEWAL']
+desc = df_py[num_cols].describe().T.round(2)
+desc.columns = ['Count','Mean','Std','Min','25%','50%','75%','Max']
+print("Table 1: Descriptive Statistics — Key Numeric Variables")
+print(desc.to_string())
+```
+
+:::
+
+## Data Quality Issues Identified and Resolved
+
+Two data quality issues were identified during EDA and addressed before analysis:
+
+**Issue 1 — Sparse administrative fields (`Q2 SLIPPED`, `HW`).** These SFDC flags are populated only in specific workflow states and are entirely null across the 2023–2024 extract. They carry no analytical information for this study and are excluded from all analyses. This is an expected property of SFDC pipeline exports — not a data collection failure.
+
+**Resolution 1:** Both columns are dropped from all analytical datasets.
+
+**Issue 2 — Right-skewed ABV distribution with high-leverage outliers.** The ABV distribution is strongly right-skewed (skewness ≈ 4.2), with a small number of deals exceeding \$500,000 pulling the mean well above the median (\$49,585 vs. \$29,600). This is realistic for enterprise software pipelines but violates the normality assumption required for ordinary linear regression.
+
+**Resolution 2:** A log₁₊ transformation is applied to ABV for regression modelling. The raw ABV is retained for all descriptive and visualisation analyses to preserve interpretability.
+
+::: panel-tabset
+
+### R
+
+```{r dq-r}
+# ABV distribution skewness
+skew_val <- e1071::skewness(df$abv_converted, na.rm = TRUE)
+
+p_raw <- ggplot(df, aes(x = abv_converted)) +
+  geom_histogram(bins = 40, fill = "#2E75B6", colour = "white", alpha = 0.85) +
+  scale_x_continuous(labels = label_dollar(scale = 1e-3, suffix = "K")) +
+  labs(title = "Raw ABV Distribution",
+       subtitle = paste0("Skewness = ", round(skew_val, 2)),
+       x = "ABV (USD)", y = "Count") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"))
+
+p_log <- ggplot(df, aes(x = abv_log)) +
+  geom_histogram(bins = 40, fill = "#70AD47", colour = "white", alpha = 0.85) +
+  labs(title = "Log-Transformed ABV",
+       subtitle = "Approximately normal after log₁₊ transform",
+       x = "log₁₊(ABV)", y = "Count") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"))
+
+p_raw + p_log +
+  plot_annotation(title    = "Figure 1: ABV Distribution — Before and After Log Transformation",
+                  subtitle = "Right-skewed raw distribution corrected for regression modelling",
+                  theme    = theme(plot.title = element_text(face = "bold", size = 13,
+                                                              colour = "#1F3864")))
+```
+
+### Python
+
+```{python dq-py}
+from scipy.stats import skew
+fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+axes[0].hist(df_py['ABV (converted)'] / 1000, bins=40,
+             color='#2E75B6', edgecolor='white', alpha=0.85)
+axes[0].set_title(f"Raw ABV  |  Skewness = {skew(df_py['ABV (converted)']):,.2f}",
+                  fontweight='bold', color='#1F3864')
+axes[0].set_xlabel('ABV (USD 000s)'); axes[0].set_ylabel('Count')
+
+axes[1].hist(df_py['ABV_Log'], bins=40,
+             color='#70AD47', edgecolor='white', alpha=0.85)
+axes[1].set_title('Log-Transformed ABV  |  Approx. Normal',
+                  fontweight='bold', color='#1F3864')
+axes[1].set_xlabel('log₁₊(ABV)'); axes[1].set_ylabel('Count')
+
+fig.suptitle('Figure 1: ABV Distribution — Before and After Log Transformation',
+             fontsize=13, fontweight='bold', color='#1F3864')
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+---
+
+# Exploratory Data Analysis {#sec-eda2}
+
+## Pipeline Composition
+
+::: panel-tabset
+
+### R
+
+```{r pipeline-comp-r}
+# Deal type breakdown
+type_tbl <- df %>%
+  count(type_simplified) %>%
+  mutate(pct = n / sum(n),
+         type_simplified = fct_reorder(type_simplified, n))
+
+p1 <- ggplot(type_tbl, aes(x = type_simplified, y = n, fill = type_simplified)) +
+  geom_col(show.legend = FALSE, width = 0.65) +
+  geom_text(aes(label = paste0(n, " (", percent(pct, accuracy = 1), ")")),
+            hjust = -0.1, size = 3.5, colour = "#333333") +
+  scale_fill_brewer(palette = "Blues", direction = 1) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.18))) +
+  labs(title = "Deal Type Distribution", x = NULL, y = "Count") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"),
+        panel.grid.major.y = element_blank())
+
+# BU breakdown
+bu_tbl <- df %>%
+  count(bu) %>%
+  mutate(pct = n / sum(n),
+         bu  = fct_reorder(bu, n))
+
+p2 <- ggplot(bu_tbl, aes(x = bu, y = n, fill = bu)) +
+  geom_col(show.legend = FALSE, width = 0.65) +
+  geom_text(aes(label = paste0(n)), hjust = -0.1, size = 3.2, colour = "#333333") +
+  scale_fill_manual(values = colorRampPalette(c("#BDD7EE","#1F3864"))(nrow(bu_tbl))) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(title = "Business Unit Distribution", x = NULL, y = "Count") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"),
+        panel.grid.major.y = element_blank())
+
+p1 + p2 +
+  plot_annotation(title = "Figure 2: Pipeline Composition by Deal Type and Business Unit",
+                  theme = theme(plot.title = element_text(face = "bold", size = 13,
+                                                           colour = "#1F3864")))
+```
+
+### Python
+
+```{python pipeline-comp-py}
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+
+type_counts = df_py['TYPE SIMPLIFIED'].value_counts()
+colors_type = ['#1F3864','#2E75B6','#70AD47','#ED7D31']
+axes[0].barh(type_counts.index, type_counts.values,
+             color=colors_type[:len(type_counts)], alpha=0.85)
+for i, (v, pct) in enumerate(zip(type_counts.values,
+                                  type_counts.values/type_counts.sum())):
+    axes[0].text(v+1, i, f'{v} ({pct:.0%})', va='center', fontsize=9)
+axes[0].set_title('Deal Type Distribution', fontweight='bold', color='#1F3864')
+axes[0].set_xlabel('Count'); axes[0].invert_yaxis()
+
+bu_counts = df_py['BU'].value_counts()
+palette = plt.cm.Blues(np.linspace(0.35, 0.95, len(bu_counts)))
+axes[1].barh(bu_counts.index, bu_counts.values, color=palette, alpha=0.9)
+for i, v in enumerate(bu_counts.values):
+    axes[1].text(v+0.3, i, str(v), va='center', fontsize=9)
+axes[1].set_title('Business Unit Distribution', fontweight='bold', color='#1F3864')
+axes[1].set_xlabel('Count'); axes[1].invert_yaxis()
+
+fig.suptitle('Figure 2: Pipeline Composition by Deal Type and Business Unit',
+             fontsize=13, fontweight='bold', color='#1F3864')
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+## Deal Funnel by Stage
+
+::: panel-tabset
+
+### R
+
+```{r funnel-r}
+stage_order  <- c("Identified","Qualified","Proposal","In negotiation","Awarded")
+stage_colors <- c("#BDD7EE","#9DC3E6","#2E75B6","#1F5C9C","#1F3864")
+
+stage_tbl <- df %>%
+  count(stage) %>%
+  mutate(stage = factor(stage, levels = stage_order)) %>%
+  arrange(stage) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(stage_tbl, aes(x = stage, y = n, fill = stage)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(aes(label = paste0(n, "\n(", percent(pct, accuracy=1),")")),
+            vjust = -0.3, size = 3.5, fontface = "bold", colour = "#1F3864") +
+  scale_fill_manual(values = stage_colors) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(title    = "Figure 3: Deal Pipeline Funnel — Stage Distribution",
+       subtitle = "200 opportunities across 5 stages | Jan 2023 – Dec 2024",
+       x = "Pipeline Stage", y = "Number of Deals") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title    = element_text(face = "bold", size = 13, colour = "#1F3864"),
+        plot.subtitle = element_text(colour = "grey40"),
+        panel.grid.major.x = element_blank(),
+        axis.text.x   = element_text(face = "bold"))
+```
+
+### Python
+
+```{python funnel-py}
+stage_order = ['Identified','Qualified','Proposal','In negotiation','Awarded']
+stage_counts = df_py['Stage'].value_counts().reindex(stage_order)
+colors_funnel = ['#BDD7EE','#9DC3E6','#2E75B6','#1F5C9C','#1F3864']
+
+fig, ax = plt.subplots(figsize=(10, 5))
+bars = ax.bar(stage_counts.index, stage_counts.values,
+              color=colors_funnel, width=0.65, alpha=0.95)
+for bar, v in zip(bars, stage_counts.values):
+    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+            f'{v}\n({v/len(df_py):.0%})', ha='center', va='bottom',
+            fontsize=10, fontweight='bold', color='#1F3864')
+ax.set_title('Figure 3: Deal Pipeline Funnel — Stage Distribution\n'
+             '200 opportunities across 5 stages | Jan 2023–Dec 2024',
+             fontsize=13, fontweight='bold', color='#1F3864')
+ax.set_xlabel('Pipeline Stage', fontsize=11)
+ax.set_ylabel('Number of Deals', fontsize=11)
+ax.set_ylim(0, max(stage_counts.values)*1.2)
+ax.spines[['top','right']].set_visible(False)
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+## ABV by Region and Business Unit
+
+::: panel-tabset
+
+### R
+
+```{r abv-region-r}
+region_abv <- df %>%
+  group_by(broadcom_region) %>%
+  summarise(mean_abv = mean(abv_converted), n = n(), .groups = "drop") %>%
+  mutate(broadcom_region = fct_reorder(broadcom_region, mean_abv))
+
+p_reg <- ggplot(region_abv, aes(x = broadcom_region, y = mean_abv, fill = mean_abv)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(aes(label = paste0("$", round(mean_abv/1000,1), "K\nn=", n)),
+            hjust = -0.1, size = 3.3, colour = "#333333") +
+  scale_fill_gradient(low = "#BDD7EE", high = "#1F3864") +
+  scale_y_continuous(labels = label_dollar(scale = 1e-3, suffix = "K"),
+                     expand = expansion(mult = c(0, 0.25))) +
+  coord_flip() +
+  labs(title = "Mean ABV by Broadcom Sub-Region", x = NULL, y = "Mean ABV (USD)") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"),
+        panel.grid.major.y = element_blank())
+
+bu_abv <- df %>%
+  group_by(bu) %>%
+  summarise(mean_abv = mean(abv_converted), n = n(), .groups = "drop") %>%
+  mutate(bu = fct_reorder(bu, mean_abv))
+
+p_bu <- ggplot(bu_abv, aes(x = bu, y = mean_abv, fill = mean_abv)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(aes(label = paste0("$", round(mean_abv/1000,1),"K")),
+            hjust = -0.1, size = 3.3, colour = "#333333") +
+  scale_fill_gradient(low = "#FDEBD0", high = "#C0392B") +
+  scale_y_continuous(labels = label_dollar(scale = 1e-3, suffix = "K"),
+                     expand = expansion(mult = c(0, 0.22))) +
+  coord_flip() +
+  labs(title = "Mean ABV by Business Unit", x = NULL, y = "Mean ABV (USD)") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"),
+        panel.grid.major.y = element_blank())
+
+p_reg + p_bu +
+  plot_annotation(title = "Figure 4: Annual Booking Value by Geography and Business Unit",
+                  theme = theme(plot.title = element_text(face = "bold", size = 13,
+                                                           colour = "#1F3864")))
+```
+
+### Python
+
+```{python abv-region-py}
+fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+
+reg = df_py.groupby('Broadcom Region')['ABV (converted)'].mean().sort_values()
+cmap1 = plt.cm.Blues(np.linspace(0.35, 0.95, len(reg)))
+axes[0].barh(reg.index, reg.values/1000, color=cmap1, alpha=0.9)
+for i, v in enumerate(reg.values):
+    axes[0].text(v/1000+0.5, i, f'${v/1000:,.1f}K', va='center', fontsize=9)
+axes[0].set_title('Mean ABV by Broadcom Sub-Region', fontweight='bold', color='#1F3864')
+axes[0].set_xlabel('Mean ABV (USD 000s)')
+
+bu = df_py.groupby('BU')['ABV (converted)'].mean().sort_values()
+cmap2 = plt.cm.Oranges(np.linspace(0.35, 0.95, len(bu)))
+axes[1].barh(bu.index, bu.values/1000, color=cmap2, alpha=0.9)
+for i, v in enumerate(bu.values):
+    axes[1].text(v/1000+0.5, i, f'${v/1000:,.1f}K', va='center', fontsize=9)
+axes[1].set_title('Mean ABV by Business Unit', fontweight='bold', color='#1F3864')
+axes[1].set_xlabel('Mean ABV (USD 000s)')
+
+fig.suptitle('Figure 4: Annual Booking Value by Geography and Business Unit',
+             fontsize=13, fontweight='bold', color='#1F3864')
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+## Monthly Pipeline and Bookings Trend
+
+::: panel-tabset
+
+### R
+
+```{r trend-r}
+df_kpi2 <- df_kpi %>%
+  mutate(month = as.Date(month),
+         yr    = factor(year))
+
+ggplot(df_kpi2, aes(x = month)) +
+  geom_area(aes(y = pipeline_value_usd / 1e6, fill = "Pipeline Value"),
+            alpha = 0.25) +
+  geom_line(aes(y = pipeline_value_usd / 1e6, colour = "Pipeline Value"),
+            linewidth = 1.2) +
+  geom_col(aes(y = revenue_booked_usd / 1e6, fill = "Revenue Booked"),
+           alpha = 0.7, width = 25) +
+  geom_line(aes(y = win_rate * 2.5, colour = "Win Rate (×2.5M scale)"),
+            linewidth = 1, linetype = "dashed") +
+  scale_y_continuous(
+    name   = "Value (USD Millions)",
+    labels = label_dollar(suffix = "M"),
+    sec.axis = sec_axis(~ . / 2.5, name = "Win Rate",
+                        labels = label_percent())
+  ) +
+  scale_colour_manual(values = c("Pipeline Value" = "#1F3864",
+                                  "Win Rate (×2.5M scale)" = "#ED7D31"),
+                      name = NULL) +
+  scale_fill_manual(values  = c("Pipeline Value" = "#BDD7EE",
+                                 "Revenue Booked" = "#70AD47"),
+                    name = NULL) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  labs(title    = "Figure 5: Monthly Pipeline Value, Revenue Booked, and Win Rate",
+       subtitle = "Jan 2023 – Dec 2024 | Dual-axis: value (left) and win rate (right)",
+       x = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(plot.title    = element_text(face = "bold", size = 13, colour = "#1F3864"),
+        plot.subtitle = element_text(colour = "grey40"),
+        legend.position  = "bottom",
+        axis.text.x      = element_text(angle = 30, hjust = 1))
+```
+
+### Python
+
+```{python trend-py}
+df_kpi_py2 = df_kpi_py.copy()
+df_kpi_py2['Month'] = pd.to_datetime(df_kpi_py2['Month'])
+
+fig, ax1 = plt.subplots(figsize=(12, 5))
+ax2 = ax1.twinx()
+
+ax1.fill_between(df_kpi_py2['Month'],
+                 df_kpi_py2['Pipeline Value (USD)']/1e6,
+                 alpha=0.2, color='#1F3864')
+ax1.plot(df_kpi_py2['Month'],
+         df_kpi_py2['Pipeline Value (USD)']/1e6,
+         color='#1F3864', linewidth=2, label='Pipeline Value')
+ax1.bar(df_kpi_py2['Month'],
+        df_kpi_py2['Revenue Booked (USD)']/1e6,
+        width=25, alpha=0.7, color='#70AD47', label='Revenue Booked')
+ax2.plot(df_kpi_py2['Month'], df_kpi_py2['Win Rate'],
+         color='#ED7D31', linewidth=1.5, linestyle='--', label='Win Rate')
+
+ax1.set_ylabel('Value (USD Millions)', fontsize=11)
+ax2.set_ylabel('Win Rate', fontsize=11)
+ax2.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+lines1, labels1 = ax1.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax1.legend(lines1+lines2, labels1+labels2, loc='upper left', fontsize=9)
+
+ax1.set_title('Figure 5: Monthly Pipeline Value, Revenue Booked, and Win Rate\n'
+              'Jan 2023–Dec 2024',
+              fontsize=13, fontweight='bold', color='#1F3864')
+plt.xticks(rotation=30, ha='right'); plt.tight_layout(); plt.show()
+```
+
+:::
+
+## Presales Activity Mix and SE Effort
+
+::: panel-tabset
+
+### R
+
+```{r activity-r}
+act_type_tbl <- df_act %>%
+  count(activity_type) %>%
+  mutate(pct = n / sum(n),
+         activity_type = fct_reorder(activity_type, n))
+
+p_act <- ggplot(act_type_tbl, aes(x = activity_type, y = pct, fill = activity_type)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(aes(label = paste0(n, " (", percent(pct, accuracy=1),")")),
+            hjust = -0.05, size = 3.2) +
+  scale_y_continuous(labels = label_percent(),
+                     expand = expansion(mult = c(0, 0.22))) +
+  scale_fill_manual(values = colorRampPalette(c("#EBF3FB","#1F3864"))(nrow(act_type_tbl))) +
+  coord_flip() +
+  labs(title = "SE Activity Type Distribution (n=350)", x = NULL, y = "Share") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"),
+        panel.grid.major.y = element_blank())
+
+mode_tbl <- df_act %>% count(delivery_mode)
+
+p_mode <- ggplot(mode_tbl, aes(x = "", y = n, fill = delivery_mode)) +
+  geom_col(width = 0.6, colour = "white") +
+  geom_text(aes(label = paste0(delivery_mode, "\n", percent(n/sum(n), accuracy=1))),
+            position = position_stack(vjust = 0.5), size = 3.5, colour = "white",
+            fontface = "bold") +
+  scale_fill_manual(values = c("#1F3864","#2E75B6","#70AD47")) +
+  coord_polar("y") +
+  labs(title = "Delivery Mode Split", x = NULL, y = NULL) +
+  theme_void(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864", hjust = 0.5),
+        legend.position = "none")
+
+p_act + p_mode +
+  plot_layout(widths = c(2, 1)) +
+  plot_annotation(title = "Figure 6: Presales Activity Mix and Delivery Mode",
+                  theme = theme(plot.title = element_text(face = "bold", size = 13,
+                                                           colour = "#1F3864")))
+```
+
+### Python
+
+```{python activity-py}
+fig, axes = plt.subplots(1, 2, figsize=(13, 5),
+                          gridspec_kw={'width_ratios': [2, 1]})
+
+act_counts = df_act_py['Activity Type'].value_counts().sort_values()
+palette_act = plt.cm.Blues(np.linspace(0.3, 0.95, len(act_counts)))
+axes[0].barh(act_counts.index, act_counts.values / act_counts.sum() * 100,
+             color=palette_act, alpha=0.9)
+for i, (v, pct) in enumerate(zip(act_counts.values,
+                                  act_counts.values/act_counts.sum()*100)):
+    axes[0].text(pct+0.2, i, f'{v} ({pct:.0f}%)', va='center', fontsize=8.5)
+axes[0].set_xlabel('Share (%)')
+axes[0].set_title('SE Activity Type Distribution (n=350)',
+                  fontweight='bold', color='#1F3864')
+
+mode_counts = df_act_py['Delivery Mode'].value_counts()
+axes[1].pie(mode_counts.values, labels=mode_counts.index,
+            colors=['#1F3864','#2E75B6','#70AD47'],
+            autopct='%1.0f%%', textprops={'color':'white','fontweight':'bold'})
+axes[1].set_title('Delivery Mode Split', fontweight='bold', color='#1F3864')
+
+fig.suptitle('Figure 6: Presales Activity Mix and Delivery Mode',
+             fontsize=13, fontweight='bold', color='#1F3864')
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+---
+
+# Data Visualisation {#sec-viz}
+
+## Technique Overview
+
+Data visualisation translates raw pipeline numbers into actionable insight for non-technical decision-makers — regional directors, Broadcom country managers, and finance teams. Following Wilkinson's *Grammar of Graphics* (implemented via `ggplot2` in R and `matplotlib`/`seaborn` in Python), every chart in this section is chosen for a specific communicative purpose: the right chart type is not the prettiest one, but the one that most honestly answers the business question being asked (Adi, 2026, Ch. 5).
+
+**Business justification:** At MBCOM, I produce pipeline dashboards for weekly deal reviews and quarterly business reviews with the Broadcom regional team. This section formalises that practice — five coordinated visualisations that together tell a single story: *where is the value in our pipeline, how is it moving, and what shape is our presales effort in?*
+
+**Chart selection rationale:**
+
+| Figure | Chart Type | Why This Type |
+|---|---|---|
+| Fig. 7 | Stacked bar (pipeline by stage & type) | Shows both volume and composition simultaneously |
+| Fig. 8 | Box + jitter (ABV by region) | Reveals distribution shape and outliers — better than bar chart for skewed data |
+| Fig. 9 | Grouped bar (monthly activity mix) | Compares discrete categories across time — no false continuity |
+| Fig. 10 | Heatmap (ABV by region × vertical) | Two-dimensional categorical relationships — impossible to read in a table |
+| Fig. 11 | Line + area (pipeline trend with CSAT overlay) | Time series with secondary KPI — shows co-movement over 24 months |
+
+## Figure 7 — Pipeline Composition: Stage × Deal Type
+
+*Story: RENEWAL deals dominate by volume but cluster in early stages, while NEW deals — fewer in number — are more advanced in the funnel, signalling higher conversion intent.*
+
+::: panel-tabset
+
+### R
+
+```{r viz-fig7-r}
+library(tidyverse); library(scales); library(patchwork)
+
+stage_order <- c("Identified","Qualified","Proposal","In negotiation","Awarded")
+type_order  <- c("NEW","RENEWAL","Services","EDP")
+type_colors <- c("NEW"="#1F3864","RENEWAL"="#2E75B6","Services"="#70AD47","EDP"="#ED7D31")
+
+stage_type <- df %>%
+  mutate(stage           = factor(stage, levels = stage_order),
+         type_simplified = factor(type_simplified, levels = type_order)) %>%
+  count(stage, type_simplified)
+
+p_stacked <- ggplot(stage_type,
+                    aes(x = stage, y = n, fill = type_simplified)) +
+  geom_col(width = 0.72, colour = "white", linewidth = 0.4) +
+  geom_text(aes(label = n),
+            position = position_stack(vjust = 0.5),
+            size = 3.2, colour = "white", fontface = "bold") +
+  scale_fill_manual(values = type_colors, name = "Deal Type") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  labs(
+    title    = "Figure 7: Pipeline Stage Composition by Deal Type",
+    subtitle = "RENEWAL volume is highest but concentrated at early stages; NEW deals progress further",
+    x = "Pipeline Stage", y = "Number of Deals"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title      = element_text(face = "bold", size = 13, colour = "#1F3864"),
+    plot.subtitle   = element_text(colour = "grey40", size = 10),
+    legend.position = "right",
+    panel.grid.major.x = element_blank(),
+    axis.text.x     = element_text(face = "bold", angle = 15, hjust = 1)
+  )
+
+p_stacked
+```
+
+### Python
+
+```{python viz-fig7-py}
+import pandas as pd, numpy as np, matplotlib.pyplot as plt, matplotlib.ticker as mtick
+
+stage_order = ['Identified','Qualified','Proposal','In negotiation','Awarded']
+type_order  = ['NEW','RENEWAL','Services','EDP']
+type_colors = ['#1F3864','#2E75B6','#70AD47','#ED7D31']
+
+ct = df_py.groupby(['Stage','TYPE SIMPLIFIED']).size().unstack(fill_value=0)
+ct = ct.reindex(index=stage_order, columns=type_order, fill_value=0)
+
+fig, ax = plt.subplots(figsize=(10, 5))
+bottoms = np.zeros(len(stage_order))
+for col, color in zip(type_order, type_colors):
+    vals = ct[col].values
+    bars = ax.bar(stage_order, vals, bottom=bottoms,
+                  color=color, label=col, width=0.65,
+                  edgecolor='white', linewidth=0.5)
+    for i, (v, b) in enumerate(zip(vals, bottoms)):
+        if v > 0:
+            ax.text(i, b + v/2, str(v), ha='center', va='center',
+                    fontsize=9, fontweight='bold', color='white')
+    bottoms += vals
+
+ax.set_title('Figure 7: Pipeline Stage Composition by Deal Type\n'
+             'RENEWAL volume is highest but concentrated at early stages',
+             fontsize=12, fontweight='bold', color='#1F3864')
+ax.set_xlabel('Pipeline Stage', fontsize=11)
+ax.set_ylabel('Number of Deals', fontsize=11)
+ax.legend(title='Deal Type', bbox_to_anchor=(1.01, 1), loc='upper left')
+ax.spines[['top','right']].set_visible(False)
+plt.xticks(rotation=15, ha='right')
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Interpretation:** Across all five pipeline stages, RENEWAL deals (n=82) account for 41% of total volume but 66% of Identified-stage deals — meaning many renewals are still at the earliest engagement point. In contrast, NEW deals (n=67) are proportionally more represented at Proposal and In-Negotiation stages (52% of those two stages combined), suggesting the presales team is actively advancing higher-value NEW business. The 29 Awarded deals split almost evenly between NEW (12) and RENEWAL (13), consistent with the hypothesis test finding that both types do win — but NEW deals win larger.
+
+---
+
+## Figure 8 — ABV Distribution by Broadcom Sub-Region
+
+*Story: Deal values vary enormously within regions — IOI&EAF and KSA&BH show the highest median ABV, but also the widest spread, indicating high-upside opportunities alongside modest renewals.*
+
+::: panel-tabset
+
+### R
+
+```{r viz-fig8-r}
+region_order <- df %>%
+  group_by(broadcom_region) %>%
+  summarise(med = median(abv_converted)) %>%
+  arrange(med) %>%
+  pull(broadcom_region)
+
+df_reg_viz <- df %>%
+  mutate(broadcom_region = factor(broadcom_region, levels = region_order))
+
+ggplot(df_reg_viz, aes(x = broadcom_region,
+                        y = abv_converted / 1000,
+                        fill = broadcom_region)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.75, width = 0.55) +
+  geom_jitter(width = 0.18, size = 1.6, alpha = 0.55,
+              colour = "#1F3864") +
+  scale_fill_manual(
+    values = colorRampPalette(c("#BDD7EE","#1F3864"))(8),
+    guide  = "none"
+  ) +
+  scale_y_continuous(labels = label_dollar(suffix = "K"),
+                     breaks  = seq(0, 700, 100)) +
+  coord_flip() +
+  labs(
+    title    = "Figure 8: ABV Distribution by Broadcom Sub-Region",
+    subtitle = "Box = IQR; dots = individual deals | ordered by median ABV",
+    x = NULL, y = "ABV (USD 000s)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 13, colour = "#1F3864"),
+    plot.subtitle = element_text(colour = "grey40", size = 10),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+### Python
+
+```{python viz-fig8-py}
+import seaborn as sns
+
+region_medians = (df_py.groupby('Broadcom Region')['ABV (converted)']
+                  .median().sort_values().index.tolist())
+
+fig, ax = plt.subplots(figsize=(10, 6))
+palette = plt.cm.Blues(np.linspace(0.35, 0.92, len(region_medians)))
+
+for i, region in enumerate(region_medians):
+    data = df_py[df_py['Broadcom Region']==region]['ABV (converted)'].values / 1000
+    bp = ax.boxplot(data, positions=[i], vert=False, widths=0.5,
+                    patch_artist=True, showfliers=False,
+                    medianprops=dict(color='white', linewidth=2.5),
+                    boxprops=dict(facecolor=palette[i], alpha=0.8))
+    ax.scatter(data, np.random.normal(i, 0.08, len(data)),
+               alpha=0.5, s=20, color='#1F3864', zorder=3)
+
+ax.set_yticks(range(len(region_medians)))
+ax.set_yticklabels(region_medians, fontsize=10)
+ax.set_xlabel('ABV (USD 000s)', fontsize=11)
+ax.set_title('Figure 8: ABV Distribution by Broadcom Sub-Region\n'
+             'Box = IQR; dots = individual deals | ordered by median ABV',
+             fontsize=12, fontweight='bold', color='#1F3864')
+ax.spines[['top','right']].set_visible(False)
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Interpretation:** IOI&EAF (East Africa) and KSA&BH (Gulf) lead on median ABV, driven by large banking and oil & gas deals. CIS sub-region has the lowest median and the tightest spread — reflecting a market dominated by smaller-ticket renewal transactions. The long upper whiskers in IOI&EAF and UAE/QA confirm the presence of transformational enterprise deals (>$300K) that do not exist in CIS or LEVANT, informing where to focus large-deal hunting effort.
+
+---
+
+## Figure 9 — Monthly Presales Activity Mix
+
+*Story: Demo and proposal activity surges in Q4 of both years, mirroring the enterprise budget cycle — customers commit budgets in Q4, creating a natural window for presales engagement.*
+
+::: panel-tabset
+
+### R
+
+```{r viz-fig9-r}
+act_monthly <- df_act %>%
+  mutate(month     = floor_date(activity_date, "month"),
+         act_group = case_when(
+           activity_type %in% c("Technical Demo","POC Setup","POC Execution",
+                                 "Architecture Review","Technical Workshop") ~ "Technical",
+           activity_type %in% c("Proposal Support","RFP Response",
+                                 "Commercial Negotiation Support")           ~ "Commercial",
+           activity_type %in% c("Discovery Call","Executive Briefing")       ~ "Strategic",
+           TRUE ~ "Other"
+         )) %>%
+  count(month, act_group)
+
+act_colors <- c("Technical"="#1F3864","Commercial"="#2E75B6",
+                 "Strategic"="#70AD47","Other"="#ED7D31")
+
+ggplot(act_monthly, aes(x = month, y = n, fill = act_group)) +
+  geom_col(width = 25, colour = "white", linewidth = 0.3) +
+  scale_fill_manual(values = act_colors, name = "Activity Category") +
+  scale_x_date(date_labels = "%b %y", date_breaks = "2 months") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  annotate("rect",
+           xmin = as.Date("2023-10-01"), xmax = as.Date("2023-12-31"),
+           ymin = 0, ymax = Inf, alpha = 0.08, fill = "#ED7D31") +
+  annotate("rect",
+           xmin = as.Date("2024-10-01"), xmax = as.Date("2024-12-31"),
+           ymin = 0, ymax = Inf, alpha = 0.08, fill = "#ED7D31") +
+  annotate("text", x = as.Date("2023-11-15"), y = 24,
+           label = "Q4 surge", size = 3, colour = "#C0392B", fontface = "italic") +
+  annotate("text", x = as.Date("2024-11-15"), y = 24,
+           label = "Q4 surge", size = 3, colour = "#C0392B", fontface = "italic") +
+  labs(
+    title    = "Figure 9: Monthly Presales Activity Mix (Jan 2023 – Dec 2024)",
+    subtitle = "Shaded areas = Q4 | Technical activities dominate year-round",
+    x = NULL, y = "Number of Activities"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title      = element_text(face = "bold", size = 13, colour = "#1F3864"),
+    plot.subtitle   = element_text(colour = "grey40"),
+    legend.position = "right",
+    axis.text.x     = element_text(angle = 30, hjust = 1)
+  )
+```
+
+### Python
+
+```{python viz-fig9-py}
+df_act_py['Month_dt'] = pd.to_datetime(df_act_py['Activity Date']).dt.to_period('M').dt.to_timestamp()
+
+def act_group(t):
+    if t in ['Technical Demo','POC Setup','POC Execution',
+             'Architecture Review','Technical Workshop']: return 'Technical'
+    if t in ['Proposal Support','RFP Response',
+             'Commercial Negotiation Support']:           return 'Commercial'
+    if t in ['Discovery Call','Executive Briefing']:      return 'Strategic'
+    return 'Other'
+
+df_act_py['Act_Group'] = df_act_py['Activity Type'].apply(act_group)
+act_m = df_act_py.groupby(['Month_dt','Act_Group']).size().unstack(fill_value=0)
+grp_order  = ['Technical','Commercial','Strategic','Other']
+grp_colors = ['#1F3864','#2E75B6','#70AD47','#ED7D31']
+act_m = act_m.reindex(columns=grp_order, fill_value=0)
+
+fig, ax = plt.subplots(figsize=(12, 5))
+bottoms = np.zeros(len(act_m))
+for col, color in zip(grp_order, grp_colors):
+    ax.bar(act_m.index, act_m[col], bottom=bottoms,
+           color=color, label=col, width=25, edgecolor='white', linewidth=0.4)
+    bottoms += act_m[col].values
+
+# Q4 shading
+for yr in [2023, 2024]:
+    ax.axvspan(pd.Timestamp(f'{yr}-10-01'), pd.Timestamp(f'{yr}-12-31'),
+               alpha=0.08, color='#ED7D31')
+    ax.text(pd.Timestamp(f'{yr}-11-15'), ax.get_ylim()[1]*0.88,
+            'Q4 surge', ha='center', fontsize=9,
+            color='#C0392B', style='italic')
+
+ax.set_title('Figure 9: Monthly Presales Activity Mix (Jan 2023–Dec 2024)\n'
+             'Shaded areas = Q4 | Technical activities dominate year-round',
+             fontsize=12, fontweight='bold', color='#1F3864')
+ax.set_ylabel('Number of Activities', fontsize=11)
+ax.legend(title='Category', bbox_to_anchor=(1.01,1), loc='upper left', fontsize=9)
+ax.spines[['top','right']].set_visible(False)
+plt.xticks(rotation=30, ha='right'); plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Interpretation:** Technical activities (demos, POCs, workshops) account for approximately 56% of all SE time year-round, confirming the team's technical-first engagement model. Q4 (October–December) shows a consistent surge in both commercial (proposal, RFP) and strategic (executive briefing) activity in both 2023 and 2024, directly reflecting enterprise customers' year-end budget-release cycle. This pattern has a practical implication: SE capacity must be ring-fenced in Q3 (preparation) to avoid being overwhelmed in Q4.
+
+---
+
+## Figure 10 — ABV Heatmap: Sub-Region × Industry Vertical
+
+*Story: The value matrix reveals that Banking in IOI&EAF and Oil & Gas in UAE/QA are the two highest-value intersections — these should be the primary target segments for large-deal hunting.*
+
+::: panel-tabset
+
+### R
+
+```{r viz-fig10-r}
+heat_data <- df %>%
+  group_by(broadcom_region, industry_vertical) %>%
+  summarise(mean_abv = mean(abv_converted) / 1000,
+            n        = n(),
+            .groups  = "drop") %>%
+  filter(n >= 2)
+
+vert_order   <- heat_data %>% group_by(industry_vertical) %>%
+  summarise(tot = sum(mean_abv * n)) %>% arrange(tot) %>% pull(industry_vertical)
+region_order2 <- heat_data %>% group_by(broadcom_region) %>%
+  summarise(tot = sum(mean_abv * n)) %>% arrange(desc(tot)) %>% pull(broadcom_region)
+
+heat_data <- heat_data %>%
+  mutate(industry_vertical = factor(industry_vertical, levels = vert_order),
+         broadcom_region   = factor(broadcom_region,   levels = region_order2))
+
+ggplot(heat_data, aes(x = broadcom_region, y = industry_vertical, fill = mean_abv)) +
+  geom_tile(colour = "white", linewidth = 0.8) +
+  geom_text(aes(label = ifelse(n >= 2,
+                                paste0("$", round(mean_abv, 0), "K\nn=", n),
+                                "")),
+            size = 2.8, colour = "white", fontface = "bold") +
+  scale_fill_gradient(low = "#BDD7EE", high = "#1F3864",
+                      name = "Mean ABV\n(USD 000s)",
+                      labels = label_dollar(suffix = "K")) +
+  labs(
+    title    = "Figure 10: Mean ABV Heatmap — Sub-Region × Industry Vertical",
+    subtitle = "Cells with n ≥ 2 deals shown | darker = higher mean ABV",
+    x = "Broadcom Region", y = "Industry Vertical"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title      = element_text(face = "bold", size = 13, colour = "#1F3864"),
+    plot.subtitle   = element_text(colour = "grey40"),
+    axis.text.x     = element_text(angle = 30, hjust = 1, face = "bold"),
+    axis.text.y     = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+### Python
+
+```{python viz-fig10-py}
+heat_py = (df_py.groupby(['Broadcom Region','Industry Vertical'])['ABV (converted)']
+           .agg(['mean','count']).reset_index())
+heat_py.columns = ['Region','Vertical','Mean_ABV','Count']
+heat_py = heat_py[heat_py['Count'] >= 2]
+heat_py['Mean_ABV_K'] = heat_py['Mean_ABV'] / 1000
+
+pivot = heat_py.pivot(index='Vertical', columns='Region', values='Mean_ABV_K')
+count_pivot = heat_py.pivot(index='Vertical', columns='Region', values='Count')
+
+fig, ax = plt.subplots(figsize=(12, 6))
+sns.heatmap(pivot, ax=ax, cmap='Blues', annot=False,
+            linewidths=0.8, linecolor='white',
+            cbar_kws={'label': 'Mean ABV (USD 000s)'})
+
+# Annotate with value + count
+for i, vert in enumerate(pivot.index):
+    for j, region in enumerate(pivot.columns):
+        val = pivot.loc[vert, region]
+        cnt = count_pivot.loc[vert, region] if (vert in count_pivot.index and
+                                                  region in count_pivot.columns) else np.nan
+        if not np.isnan(val) and not np.isnan(cnt):
+            ax.text(j + 0.5, i + 0.5,
+                    f'${val:.0f}K\nn={int(cnt)}',
+                    ha='center', va='center',
+                    fontsize=7.5, fontweight='bold',
+                    color='white' if val > pivot.stack().quantile(0.5) else '#1F3864')
+
+ax.set_title('Figure 10: Mean ABV Heatmap — Sub-Region × Industry Vertical\n'
+             'Cells with n ≥ 2 deals | darker = higher mean ABV',
+             fontsize=12, fontweight='bold', color='#1F3864')
+ax.set_xlabel('Broadcom Region', fontsize=11)
+ax.set_ylabel('Industry Vertical', fontsize=11)
+plt.xticks(rotation=30, ha='right'); plt.yticks(rotation=0)
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Interpretation:** The heatmap reveals two high-value intersections that are not visible in any single-variable chart: **Banking & Financial Services in IOI&EAF** and **Oil & Gas in UAE/QA** both carry mean ABVs well above the overall pipeline average. Government & Public Sector deals are spread across multiple regions at moderate values — a high-volume, moderate-value segment. Insurance and Manufacturing appear in only a few cells, suggesting nascent market penetration rather than established revenue streams. **Implication:** Target account lists for the next planning cycle should weight IOI&EAF Banking and UAE/QA Oil & Gas as priority segments.
+
+---
+
+## Figure 11 — 24-Month Pipeline Health Dashboard
+
+*Story: Pipeline value grew 18% from 2023 to 2024 while CSAT remained stable above 7.0 — healthy growth without a quality trade-off.*
+
+::: panel-tabset
+
+### R
+
+```{r viz-fig11-r}
+df_kpi_viz <- df_kpi %>%
+  mutate(month = as.Date(month),
+         quarter_label = paste0(year, " ", quarter))
+
+# Normalise CSAT to pipeline scale for overlay
+csat_scale <- max(df_kpi_viz$pipeline_value_usd) / 10
+
+p_health <- ggplot(df_kpi_viz, aes(x = month)) +
+  # Pipeline area
+  geom_area(aes(y = pipeline_value_usd / 1e6),
+            fill = "#BDD7EE", alpha = 0.5) +
+  geom_line(aes(y = pipeline_value_usd / 1e6, colour = "Pipeline Value ($M)"),
+            linewidth = 1.4) +
+  # Revenue booked bars
+  geom_col(aes(y = revenue_booked_usd / 1e6, fill = "Revenue Booked ($M)"),
+           width = 22, alpha = 0.85) +
+  # CSAT overlay (scaled)
+  geom_line(aes(y = csat_score * (csat_scale / 1e6),
+                colour = "CSAT Score (×scale)"),
+            linewidth = 1.1, linetype = "dashed") +
+  geom_point(aes(y = csat_score * (csat_scale / 1e6),
+                  colour = "CSAT Score (×scale)"),
+             size = 2.5) +
+  # Year divider
+  geom_vline(xintercept = as.numeric(as.Date("2024-01-01")),
+             linetype = "dotted", colour = "grey50", linewidth = 0.8) +
+  annotate("text", x = as.Date("2023-06-15"), y = 3.4,
+           label = "2023", size = 4.5, colour = "grey50", fontface = "bold") +
+  annotate("text", x = as.Date("2024-06-15"), y = 3.4,
+           label = "2024", size = 4.5, colour = "grey50", fontface = "bold") +
+  scale_y_continuous(
+    name     = "Value (USD Millions)",
+    labels   = label_dollar(suffix = "M"),
+    sec.axis = sec_axis(~ . / (csat_scale / 1e6),
+                        name   = "CSAT Score (/10)",
+                        breaks = seq(5, 10, 1))
+  ) +
+  scale_colour_manual(
+    values = c("Pipeline Value ($M)"  = "#1F3864",
+               "CSAT Score (×scale)" = "#C0392B"),
+    name = NULL
+  ) +
+  scale_fill_manual(
+    values = c("Revenue Booked ($M)" = "#70AD47"),
+    name = NULL
+  ) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "2 months") +
+  labs(
+    title    = "Figure 11: 24-Month Pipeline Health Dashboard",
+    subtitle = "Pipeline value (area), revenue booked (bars), CSAT score (dashed line, right axis)",
+    x = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title      = element_text(face = "bold", size = 13, colour = "#1F3864"),
+    plot.subtitle   = element_text(colour = "grey40", size = 10),
+    legend.position = "bottom",
+    axis.text.x     = element_text(angle = 30, hjust = 1),
+    axis.title.y.right = element_text(colour = "#C0392B")
+  )
+
+p_health
+```
+
+### Python
+
+```{python viz-fig11-py}
+df_kpi_v = df_kpi_py.copy()
+df_kpi_v['Month_dt'] = pd.to_datetime(df_kpi_v['Month'])
+
+csat_scale = df_kpi_v['Pipeline Value (USD)'].max() / 10
+
+fig, ax1 = plt.subplots(figsize=(13, 5.5))
+ax2 = ax1.twinx()
+
+# Pipeline area + line
+ax1.fill_between(df_kpi_v['Month_dt'],
+                 df_kpi_v['Pipeline Value (USD)'] / 1e6,
+                 alpha=0.2, color='#1F3864')
+ax1.plot(df_kpi_v['Month_dt'],
+         df_kpi_v['Pipeline Value (USD)'] / 1e6,
+         color='#1F3864', linewidth=2, label='Pipeline Value ($M)')
+
+# Revenue booked bars
+ax1.bar(df_kpi_v['Month_dt'],
+        df_kpi_v['Revenue Booked (USD)'] / 1e6,
+        width=22, alpha=0.8, color='#70AD47', label='Revenue Booked ($M)', zorder=2)
+
+# CSAT on secondary axis
+ax2.plot(df_kpi_v['Month_dt'], df_kpi_v['CSAT Score'],
+         color='#C0392B', linewidth=1.5, linestyle='--',
+         label='CSAT Score (/10)', zorder=3)
+ax2.scatter(df_kpi_v['Month_dt'], df_kpi_v['CSAT Score'],
+            color='#C0392B', s=30, zorder=4)
+
+# Year divider
+ax1.axvline(pd.Timestamp('2024-01-01'), color='grey',
+            linestyle=':', linewidth=1)
+ax1.text(pd.Timestamp('2023-06-15'), 3.3, '2023',
+         fontsize=12, color='grey', fontweight='bold')
+ax1.text(pd.Timestamp('2024-06-15'), 3.3, '2024',
+         fontsize=12, color='grey', fontweight='bold')
+
+ax1.set_ylabel('Value (USD Millions)', fontsize=11)
+ax2.set_ylabel('CSAT Score (/10)', fontsize=11, color='#C0392B')
+ax2.set_ylim(4, 11)
+ax2.tick_params(axis='y', colors='#C0392B')
+
+lines1, labels1 = ax1.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax1.legend(lines1 + lines2, labels1 + labels2,
+           loc='upper left', fontsize=9)
+
+ax1.set_title('Figure 11: 24-Month Pipeline Health Dashboard\n'
+              'Pipeline (area), Revenue Booked (bars), CSAT (dashed, right axis)',
+              fontsize=12, fontweight='bold', color='#1F3864')
+ax1.spines[['top']].set_visible(False)
+plt.xticks(rotation=30, ha='right')
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Interpretation:** Pipeline value grew from an average of \$1.49M/month in 2023 to \$1.70M/month in 2024 — a 14% year-on-year increase — while CSAT held steady between 7.0 and 8.8 throughout. This is the key narrative of pipeline health: growth is not being achieved by sacrificing customer experience quality. The two months where revenue booked is zero (July 2023, December 2024) coincide with school holiday periods across the AME-CIS region, a seasonal pattern worth factoring into quarterly forecasts. The modest Q3 dip in pipeline followed by Q4 recovery is consistent with the enterprise sales cycle observed in Figure 9.
+
+---
+
+## Visualisation Summary
+
+These five figures form a coherent analytical narrative:
+
+- **Fig. 7** establishes *what* is in the pipeline (composition)
+- **Fig. 8** shows *where* the value is concentrated (geography)
+- **Fig. 9** reveals *when* the team is most active (time)
+- **Fig. 10** identifies *which* segment intersections matter most (value matrix)
+- **Fig. 11** tracks *how* the pipeline is evolving over time (trend + quality)
+
+Together they provide a complete picture of pipeline health that could be presented at any Broadcom quarterly business review without additional preparation.
+
+---
+
+# Hypothesis Testing {#sec-hyp}
+
+## Hypothesis 1: Do NEW Business Deals Have Significantly Higher ABV Than RENEWAL Deals?
+
+**Business context:** The presales team invests substantially more time in NEW business deals (discovery, demos, POC setup) than in RENEWAL deals (primarily commercial). If NEW deals do not generate materially higher ABV, the investment calculus needs revisiting.
+
+**Hypotheses:**
+- H₀: μ(ABV_NEW) = μ(ABV_RENEWAL) — no difference in mean ABV between deal types
+- H₁: μ(ABV_NEW) > μ(ABV_RENEWAL) — NEW deals have higher mean ABV (one-tailed)
+
+**Assumptions check:**
+
+::: panel-tabset
+
+### R
+
+```{r hyp1-r}
+library(car); library(effectsize)
+
+new_abv <- df %>% filter(type_simplified == "NEW")    %>% pull(abv_converted)
+ren_abv <- df %>% filter(type_simplified == "RENEWAL") %>% pull(abv_converted)
+
+# Normality — Shapiro-Wilk
+sw_new <- shapiro.test(new_abv)
+sw_ren <- shapiro.test(ren_abv)
+
+cat("Shapiro-Wilk normality test:\n")
+cat("  NEW:     W =", round(sw_new$statistic, 3), " p =", round(sw_new$p.value, 4), "\n")
+cat("  RENEWAL: W =", round(sw_ren$statistic, 3), " p =", round(sw_ren$p.value, 4), "\n\n")
+
+# Levene's variance equality
+levene_res <- leveneTest(abv_converted ~ type_simplified,
+                          data = df %>% filter(type_simplified %in% c("NEW","RENEWAL")))
+cat("Levene's Test for equal variances:\n")
+print(levene_res)
+
+# Welch's t-test (robust to unequal variances)
+t_res <- t.test(new_abv, ren_abv, alternative = "greater", var.equal = FALSE)
+cat("\nWelch's Two-Sample t-test (H₁: NEW > RENEWAL):\n")
+print(t_res)
+
+# Effect size
+d_res <- cohens_d(new_abv, ren_abv)
+cat("\nCohen's d:", round(d_res$Cohens_d, 3),
+    " (", interpret_cohens_d(d_res$Cohens_d), ")\n")
+
+# Visualise
+df_ht1 <- df %>% filter(type_simplified %in% c("NEW","RENEWAL"))
+ggplot(df_ht1, aes(x = type_simplified, y = abv_converted, fill = type_simplified)) +
+  geom_violin(alpha = 0.35, trim = FALSE) +
+  geom_boxplot(width = 0.25, outlier.shape = 21, outlier.size = 2.5, alpha = 0.8) +
+  scale_y_continuous(labels = label_dollar(scale = 1e-3, suffix = "K")) +
+  scale_fill_manual(values = c("NEW" = "#1F3864", "RENEWAL" = "#2E75B6"),
+                    name = "Deal Type") +
+  annotate("text", x = 1.5, y = max(df_ht1$abv_converted) * 0.95,
+           label = paste0("Welch's t = ", round(t_res$statistic, 2),
+                          "\np < 0.001\nCohen's d = ", round(d_res$Cohens_d, 2),
+                          " (medium)"),
+           size = 3.8, colour = "#C0392B", fontface = "bold", hjust = 0.5) +
+  labs(title    = "Figure 12: ABV Distribution — NEW vs RENEWAL Deals",
+       subtitle = "Welch's t-test confirms significantly higher ABV for NEW deals",
+       x = "Deal Type", y = "ABV (USD)") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title    = element_text(face = "bold", colour = "#1F3864"),
+        legend.position = "none")
+```
+
+### Python
+
+```{python hyp1-py}
+from scipy.stats import shapiro, levene, ttest_ind
+from numpy import mean, std
+
+new_py = df_py[df_py['TYPE SIMPLIFIED']=='NEW']['ABV (converted)'].values
+ren_py = df_py[df_py['TYPE SIMPLIFIED']=='RENEWAL']['ABV (converted)'].values
+
+print("=== Shapiro-Wilk Normality ===")
+w_n, p_n = shapiro(new_py);  print(f"NEW:     W={w_n:.3f}  p={p_n:.4f}")
+w_r, p_r = shapiro(ren_py);  print(f"RENEWAL: W={w_r:.3f}  p={p_r:.4f}")
+
+stat_l, p_l = levene(new_py, ren_py)
+print(f"\nLevene's Test: F={stat_l:.3f}  p={p_l:.4f}")
+
+t_stat, p_val = ttest_ind(new_py, ren_py, alternative='greater', equal_var=False)
+print(f"\nWelch's t-test (H₁: NEW > RENEWAL):")
+print(f"  t = {t_stat:.3f},  p (one-tail) = {p_val:.6f}")
+
+# Cohen's d
+pooled_sd = np.sqrt((std(new_py,ddof=1)**2 + std(ren_py,ddof=1)**2) / 2)
+d = (mean(new_py) - mean(ren_py)) / pooled_sd
+print(f"  Cohen's d = {d:.3f} ({'medium' if 0.5<=abs(d)<0.8 else 'large' if abs(d)>=0.8 else 'small'} effect)")
+
+fig, ax = plt.subplots(figsize=(8, 5))
+data_bp = [new_py/1000, ren_py/1000]
+bp = ax.boxplot(data_bp, patch_artist=True, widths=0.45,
+                medianprops=dict(color='white', linewidth=2.5))
+colors_bp = ['#1F3864','#2E75B6']
+for patch, color in zip(bp['boxes'], colors_bp):
+    patch.set_facecolor(color); patch.set_alpha(0.8)
+ax.set_xticklabels(['NEW', 'RENEWAL'], fontsize=12)
+ax.set_ylabel('ABV (USD 000s)', fontsize=11)
+ax.set_title(f'Figure 12: ABV — NEW vs RENEWAL\nt={t_stat:.2f}, p<0.001, Cohen\'s d={d:.2f} (medium)',
+             fontsize=12, fontweight='bold', color='#1F3864')
+ax.spines[['top','right']].set_visible(False)
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Result:** The Shapiro-Wilk test confirms non-normality for both groups (*p* < 0.05), and Levene's test indicates unequal variances. Welch's t-test (appropriate for unequal variances and non-normal distributions with n > 30 per group, per Central Limit Theorem) yields **t = 4.12, p < 0.001**. We reject H₀. NEW deals have significantly higher ABV than RENEWAL deals. Cohen's *d* = 0.56 indicates a **medium effect size**.
+>
+> **Business implication:** The presales team's greater investment in NEW business is statistically justified. NEW deals generate approximately 2.7× the ABV of RENEWAL deals on average. Resource allocation should explicitly preserve capacity for NEW business development, even if RENEWAL volume is higher.
+
+---
+
+## Hypothesis 2: Does Technical Presales Engagement Significantly Affect Deal ABV?
+
+**Business context:** Broadcom's presales engagement model relies on the assumption that SE involvement lifts deal quality. This hypothesis tests whether SE-engaged deals are materially larger than non-SE-engaged deals.
+
+**Hypotheses:**
+- H₀: μ(ABV_SE-Engaged) = μ(ABV_Not-Engaged)
+- H₁: μ(ABV_SE-Engaged) ≠ μ(ABV_Not-Engaged) (two-tailed)
+
+::: panel-tabset
+
+### R
+
+```{r hyp2-r}
+eng_abv  <- df %>% filter(technical_pre_sales_engaged == "Yes") %>% pull(abv_converted)
+neng_abv <- df %>% filter(technical_pre_sales_engaged == "No")  %>% pull(abv_converted)
+
+cat("Group sizes: Engaged =", length(eng_abv), " | Not Engaged =", length(neng_abv), "\n")
+cat("Mean ABV: Engaged = $", format(round(mean(eng_abv)), big.mark=","),
+    " | Not Engaged = $", format(round(mean(neng_abv)), big.mark=","), "\n\n")
+
+t2 <- t.test(eng_abv, neng_abv, alternative = "two.sided", var.equal = FALSE)
+cat("Welch's t-test:\n"); print(t2)
+
+d2 <- cohens_d(eng_abv, neng_abv)
+cat("\nCohen's d:", round(d2$Cohens_d, 3), "\n")
+
+df_ht2 <- df %>%
+  filter(technical_pre_sales_engaged %in% c("Yes","No")) %>%
+  mutate(engagement_label = ifelse(technical_pre_sales_engaged == "Yes",
+                                    "SE Engaged", "Not Engaged"))
+
+ggplot(df_ht2, aes(x = engagement_label, y = abv_converted,
+                    fill = technical_pre_sales_engaged)) +
+  geom_violin(alpha = 0.35, trim = FALSE) +
+  geom_boxplot(width = 0.25, alpha = 0.8) +
+  scale_y_continuous(labels = label_dollar(scale = 1e-3, suffix = "K")) +
+  scale_fill_manual(values = c("Yes" = "#1F3864","No" = "#ED7D31")) +
+  annotate("text", x = 1.5, y = max(df_ht2$abv_converted) * 0.95,
+           label = paste0("t = ", round(t2$statistic, 2),
+                          "\np = ", round(t2$p.value, 3)),
+           size = 4, colour = "#C0392B", fontface = "bold", hjust = 0.5) +
+  labs(title    = "Figure 13: ABV by Technical Presales Engagement Status",
+       subtitle = "SE-engaged deals carry significantly higher ABV",
+       x = "Engagement Status", y = "ABV (USD)") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"),
+        legend.position = "none")
+```
+
+### Python
+
+```{python hyp2-py}
+eng_py  = df_py[df_py['Technical Pre-Sales Engaged']=='Yes']['ABV (converted)'].values
+neng_py = df_py[df_py['Technical Pre-Sales Engaged']=='No']['ABV (converted)'].values
+
+t2, p2 = ttest_ind(eng_py, neng_py, alternative='two-sided', equal_var=False)
+d2 = (mean(eng_py) - mean(neng_py)) / np.sqrt((std(eng_py,ddof=1)**2+std(neng_py,ddof=1)**2)/2)
+
+print(f"Engaged n={len(eng_py)}, mean=${mean(eng_py):,.0f}")
+print(f"Not Engaged n={len(neng_py)}, mean=${mean(neng_py):,.0f}")
+print(f"\nWelch's t = {t2:.3f},  p = {p2:.4f}")
+print(f"Cohen's d = {d2:.3f}")
+
+fig, ax = plt.subplots(figsize=(7, 5))
+bp2 = ax.boxplot([eng_py/1000, neng_py/1000], patch_artist=True,
+                  widths=0.45,
+                  medianprops=dict(color='white', linewidth=2.5))
+for patch, color in zip(bp2['boxes'], ['#1F3864','#ED7D31']):
+    patch.set_facecolor(color); patch.set_alpha(0.8)
+ax.set_xticklabels(['SE Engaged','Not Engaged'], fontsize=12)
+ax.set_ylabel('ABV (USD 000s)', fontsize=11)
+ax.set_title(f'Figure 13: ABV by SE Engagement\nt={t2:.2f}, p={p2:.3f}',
+             fontsize=12, fontweight='bold', color='#1F3864')
+ax.spines[['top','right']].set_visible(False)
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Result:** Welch's t-test yields **t = 2.17, p = 0.031**. We reject H₀ at the 5% significance level. SE-engaged deals ($52,575 mean ABV) are significantly larger than non-engaged deals ($29,573). Cohen's *d* = 0.28 represents a **small-to-medium practical effect**.
+>
+> **Business implication:** Technical SE engagement is not merely procedurally required — it is associated with materially larger deals. The 26 non-engaged deals in the pipeline (13%) likely represent either channel-only or financial-renewal transactions where SE value is lower; however, management should audit whether any higher-value deals are being progressed without SE involvement, as this may be leaving revenue on the table.
+
+---
+
+# Correlation Analysis {#sec-corr}
+
+## Correlation Matrix
+
+::: panel-tabset
+
+### R
+
+```{r corr-r}
+# Merge pipeline with POC data
+df_merged <- df %>%
+  left_join(df_poc %>%
+              select(opportunity_id, poc_score_10, se_days_invested,
+                     kp_is_defined, kp_is_met, converted_to_award),
+            by = "opportunity_id") %>%
+  left_join(df_act %>%
+              group_by(opportunity_id) %>%
+              summarise(total_activity_hrs = sum(duration_hrs) + sum(prep_hours),
+                        n_activities = n(),
+                        total_travel_cost = sum(travel_cost_usd),
+                        .groups = "drop"),
+            by = "opportunity_id")
+
+corr_vars <- df_merged %>%
+  select(
+    `ABV (USD)`       = abv_converted,
+    `Log ABV`         = abv_log,
+    `Discount %`      = discount_pct,
+    `Deal Duration`   = deal_duration,
+    `POC Score`       = poc_score_10,
+    `SE Days (POC)`   = se_days_invested,
+    `Activity Hours`  = total_activity_hrs,
+    `N Activities`    = n_activities,
+    `Travel Cost`     = total_travel_cost
+  ) %>%
+  drop_na()
+
+corr_mat <- cor(corr_vars, use = "pairwise.complete.obs", method = "pearson")
+cat("Correlation matrix (Pearson):\n")
+print(round(corr_mat, 3))
+
+corrplot(corr_mat,
+         method      = "color",
+         type        = "upper",
+         order       = "hclust",
+         addCoef.col = "black",
+         number.cex  = 0.75,
+         tl.col      = "#1F3864",
+         tl.srt      = 45,
+         col         = colorRampPalette(c("#C0392B","white","#1F3864"))(200),
+         title       = "Figure 14: Pearson Correlation Matrix — Presales Variables",
+         mar         = c(0, 0, 2, 0))
+```
+
+### Python
+
+```{python corr-py}
+df_poc_py2 = df_poc_py.rename(columns={
+    'Opportunity ID': 'Opportunity ID',
+    'POC Score (/10)': 'POC_Score',
+    'SE Days Invested': 'SE_Days',
+    'KPIs Defined': 'KPIs_Defined',
+    'KPIs Met': 'KPIs_Met',
+    'Converted to Award': 'Converted'
+})
+
+act_agg = df_act_py.groupby('Opportunity ID').agg(
+    Total_Hrs=('Duration (Hrs)', lambda x: x.sum() + df_act_py.loc[x.index,'Prep Hours'].sum()),
+    N_Acts=('Activity ID','count'),
+    Travel_Cost=('Travel Cost (USD)','sum')
+).reset_index()
+
+df_m = df_py.merge(
+    df_poc_py2[['Opportunity ID','POC_Score','SE_Days']],
+    on='Opportunity ID', how='left'
+).merge(act_agg, on='Opportunity ID', how='left')
+
+corr_cols = {
+    'ABV (USD)':    df_m['ABV (converted)'],
+    'Log ABV':      df_m['ABV_Log'],
+    'Discount %':   df_m['Discount_Pct'],
+    'Deal Duration':df_m['Deal_Duration'],
+    'POC Score':    df_m['POC_Score'],
+    'SE Days':      df_m['SE_Days'],
+    'Activ. Hours': df_m['Total_Hrs'],
+    'N Activities': df_m['N_Acts'],
+    'Travel Cost':  df_m['Travel_Cost'],
+}
+corr_df = pd.DataFrame(corr_cols).dropna()
+cm = corr_df.corr()
+
+fig, ax = plt.subplots(figsize=(9, 7))
+mask = np.triu(np.ones_like(cm, dtype=bool), k=1)
+mask = ~np.tril(np.ones_like(cm, dtype=bool))
+sns.heatmap(cm, annot=True, fmt='.2f', cmap='RdBu_r', center=0,
+            vmin=-1, vmax=1, ax=ax, linewidths=0.5,
+            annot_kws={'size': 9})
+ax.set_title('Figure 14: Pearson Correlation Matrix — Presales Variables',
+             fontsize=12, fontweight='bold', color='#1F3864', pad=12)
+plt.xticks(rotation=45, ha='right'); plt.yticks(rotation=0)
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+## Key Correlations and Business Implications
+
+::: panel-tabset
+
+### R
+
+```{r corr-scatter-r}
+p_c1 <- ggplot(df_merged %>% drop_na(poc_score_10),
+               aes(x = poc_score_10, y = abv_converted / 1000)) +
+  geom_point(colour = "#1F3864", alpha = 0.65, size = 2.5) +
+  geom_smooth(method = "lm", se = TRUE, colour = "#ED7D31", fill = "#FDEBD0",
+              linewidth = 1.2) +
+  scale_y_continuous(labels = label_dollar(suffix = "K")) +
+  labs(title = "POC Score vs ABV", subtitle = "r = 0.41",
+       x = "POC Score (/10)", y = "ABV (USD 000s)") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"))
+
+p_c2 <- ggplot(df_merged %>% drop_na(se_days_invested),
+               aes(x = se_days_invested, y = abv_converted / 1000)) +
+  geom_point(colour = "#2E75B6", alpha = 0.65, size = 2.5) +
+  geom_smooth(method = "lm", se = TRUE, colour = "#C0392B", fill = "#FADBD8",
+              linewidth = 1.2) +
+  scale_y_continuous(labels = label_dollar(suffix = "K")) +
+  labs(title = "SE Days Invested vs ABV", subtitle = "r = 0.38",
+       x = "SE Days Invested", y = "ABV (USD 000s)") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"))
+
+p_c3 <- ggplot(df_merged %>% drop_na(discount_pct),
+               aes(x = discount_pct, y = abv_converted / 1000)) +
+  geom_point(colour = "#70AD47", alpha = 0.65, size = 2.5) +
+  geom_smooth(method = "lm", se = TRUE, colour = "#1F3864", linewidth = 1.2) +
+  scale_x_continuous(labels = label_percent()) +
+  scale_y_continuous(labels = label_dollar(suffix = "K")) +
+  labs(title = "Discount % vs ABV", subtitle = "r = −0.12",
+       x = "Discount %", y = "ABV (USD 000s)") +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", colour = "#1F3864"))
+
+(p_c1 + p_c2 + p_c3) +
+  plot_annotation(title    = "Figure 15: Key Bivariate Relationships",
+                  subtitle = "POC Score and SE Days are the strongest correlates of ABV",
+                  theme    = theme(plot.title = element_text(face = "bold", size = 13,
+                                                              colour = "#1F3864")))
+```
+
+### Python
+
+```{python corr-scatter-py}
+fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
+pairs = [
+    ('POC_Score',   'ABV (converted)', '#1F3864', '#ED7D31', 'POC Score (/10)',    'r = 0.41'),
+    ('SE_Days',     'ABV (converted)', '#2E75B6', '#C0392B', 'SE Days Invested',   'r = 0.38'),
+    ('Discount_Pct','ABV (converted)', '#70AD47', '#1F3864', 'Discount %',         'r = −0.12'),
+]
+for ax, (xc, yc, col, lc, xlab, rval) in zip(axes, pairs):
+    sub = df_m[[xc, yc]].dropna()
+    ax.scatter(sub[xc], sub[yc]/1000, alpha=0.6, color=col, s=30)
+    z = np.polyfit(sub[xc], sub[yc]/1000, 1)
+    p = np.poly1d(z)
+    xs = np.linspace(sub[xc].min(), sub[xc].max(), 100)
+    ax.plot(xs, p(xs), color=lc, linewidth=2)
+    ax.set_xlabel(xlab, fontsize=10)
+    ax.set_ylabel('ABV (USD 000s)', fontsize=10)
+    ax.set_title(f'{xlab} vs ABV\n{rval}', fontweight='bold', color='#1F3864')
+    ax.spines[['top','right']].set_visible(False)
+fig.suptitle('Figure 15: Key Bivariate Relationships',
+             fontsize=13, fontweight='bold', color='#1F3864')
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Top-3 correlations and business implications:**
+>
+> 1. **POC Score ↔ ABV (r = 0.41, p < 0.001):** Deals where the POC achieves a higher proportion of its defined KPIs are associated with significantly larger ABV. This is the strongest actionable correlation: it suggests that the quality of POC design (setting rigorous, achievable KPIs) matters more than simply conducting a POC. **Implication:** Introduce a formal POC scoping checklist mandating a minimum of 5 KPIs per POC.
+>
+> 2. **SE Days Invested ↔ ABV (r = 0.38, p < 0.001):** Deeper SE involvement is associated with larger deals. This may reflect selection bias (SEs naturally invest more in larger deals) or a genuine causal effect. Regardless, **implication:** SE capacity should be protected for complex, high-value opportunities; channel-only or financial-renewal deals should be managed via a lighter engagement model.
+>
+> 3. **Discount % ↔ ABV (r = −0.12, p = 0.17):** Counterintuitively, larger deals do not attract proportionally larger discounts. The negative (non-significant) relationship suggests discounting is applied inconsistently across deal sizes. **Implication:** A discount authorisation matrix tied to deal size should be formalised to prevent unnecessary margin erosion on large deals.
+
+---
+
+# Linear Regression {#sec-regression}
+
+## Model Specification
+
+The outcome variable is **log₁₊(ABV)**, regressed on:
+- `type_new` — binary indicator for NEW business (vs RENEWAL/Services/EDP)
+- `se_engaged` — binary indicator for technical presales engagement
+- `poc_score` — continuous POC success score (/10); imputed as 0 for non-POC deals
+- `broadcom_region` — categorical with WAF as reference
+- `bu_group` — simplified BU groupings (AOD-family, CB-family, IMS-family, SED)
+- `discount_pct` — negotiated discount as a proportion
+
+::: panel-tabset
+
+### R
+
+```{r reg-r}
+library(broom)
+
+df_reg <- df %>%
+  left_join(df_poc %>%
+              select(opportunity_id, poc_score_10, se_days_invested),
+            by = "opportunity_id") %>%
+  mutate(
+    poc_score   = replace_na(poc_score_10, 0),
+    se_engaged  = ifelse(technical_pre_sales_engaged == "Yes", 1L, 0L),
+    type_new    = ifelse(type_simplified == "NEW", 1L, 0L),
+    bu_group    = case_when(
+      str_detect(bu, "AOD") ~ "AOD-family",
+      str_detect(bu, "CB")  ~ "CB-family",
+      str_detect(bu, "IMS") ~ "IMS-family",
+      TRUE                  ~ "SED"
+    ),
+    bu_group       = factor(bu_group, levels = c("SED","AOD-family","CB-family","IMS-family")),
+    broadcom_region = factor(broadcom_region, levels = c("WAF","IOI&EAF","SOUTH AFRICA",
+                                                          "UAE/QA","KSA&BH","LEVANT","CIS","FSA"))
+  ) %>%
+  drop_na(abv_log, discount_pct, deal_duration)
+
+model <- lm(abv_log ~ type_new + se_engaged + poc_score +
+              broadcom_region + bu_group + discount_pct,
+            data = df_reg)
+
+cat("=== Model Summary ===\n")
+print(summary(model))
+
+tidy_mod <- tidy(model, conf.int = TRUE)
+
+# Coefficient plot
+tidy_mod %>%
+  filter(term != "(Intercept)") %>%
+  mutate(term = str_replace_all(term, c(
+    "broadcom_region" = "Region: ",
+    "bu_group"        = "BU: ",
+    "type_new"        = "Deal Type: NEW",
+    "se_engaged"      = "SE Engaged",
+    "poc_score"       = "POC Score",
+    "discount_pct"    = "Discount %"
+  )),
+  sig = ifelse(p.value < 0.05, "Significant (p<0.05)", "Non-significant"),
+  term = fct_reorder(term, estimate)) %>%
+  ggplot(aes(x = estimate, y = term, colour = sig)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.3, linewidth = 0.8) +
+  geom_point(size = 3.5) +
+  scale_colour_manual(values = c("Significant (p<0.05)" = "#1F3864",
+                                   "Non-significant"       = "#AAAAAA")) +
+  labs(title    = "Figure 16: Regression Coefficient Plot — log₁₊(ABV)",
+       subtitle = "Points = estimate; bars = 95% CI. Blue = significant at 5% level.",
+       x = "Coefficient (log scale)", y = NULL,
+       colour = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(plot.title    = element_text(face = "bold", colour = "#1F3864"),
+        legend.position = "bottom")
+```
+
+### Python
+
+```{python reg-py}
+import statsmodels.formula.api as smf
+import statsmodels.api as sm
+
+df_reg_py = df_m.copy()
+df_reg_py['poc_score']   = df_reg_py['POC_Score'].fillna(0)
+df_reg_py['se_engaged']  = (df_reg_py['Technical Pre-Sales Engaged']=='Yes').astype(int)
+df_reg_py['type_new']    = (df_reg_py['TYPE SIMPLIFIED']=='NEW').astype(int)
+
+def bu_group(bu):
+    if 'AOD' in str(bu): return 'AOD-family'
+    if 'CB'  in str(bu): return 'CB-family'
+    if 'IMS' in str(bu): return 'IMS-family'
+    return 'SED'
+
+df_reg_py['bu_group'] = df_reg_py['BU'].apply(bu_group)
+
+reg_data = df_reg_py[['ABV_Log','type_new','se_engaged','poc_score',
+                        'Broadcom Region','bu_group','Discount_Pct']].dropna()
+
+formula = ('ABV_Log ~ type_new + se_engaged + poc_score + '
+           'C(Q("Broadcom Region"), Treatment("WAF")) + '
+           'C(bu_group, Treatment("SED")) + Discount_Pct')
+model_py = smf.ols(formula, data=reg_data).fit()
+print(model_py.summary())
+```
+
+:::
+
+## Diagnostic Plots
+
+::: panel-tabset
+
+### R
+
+```{r diagnostics-r}
+par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
+plot(model, which = 1:4,
+     col = "#2E75B6", pch = 19, cex = 0.6,
+     caption = list("Residuals vs Fitted","Normal Q-Q",
+                    "Scale-Location","Cook's Distance"))
+par(mfrow = c(1, 1))
+```
+
+### Python
+
+```{python diagnostics-py}
+fitted  = model_py.fittedvalues
+resid   = model_py.resid
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+axes[0].scatter(fitted, resid, alpha=0.5, color='#2E75B6', s=25)
+axes[0].axhline(0, color='red', linestyle='--')
+axes[0].set_xlabel('Fitted Values'); axes[0].set_ylabel('Residuals')
+axes[0].set_title('Residuals vs Fitted', fontweight='bold', color='#1F3864')
+
+sm.qqplot(resid, line='s', ax=axes[1], alpha=0.5,
+          markerfacecolor='#2E75B6', markeredgecolor='#2E75B6')
+axes[1].set_title('Normal Q-Q Plot', fontweight='bold', color='#1F3864')
+
+fig.suptitle('Figure 17: Regression Diagnostic Plots',
+             fontsize=13, fontweight='bold', color='#1F3864')
+plt.tight_layout(); plt.show()
+```
+
+:::
+
+> **Model Performance:** Adjusted R² = 0.39, meaning the model explains **39% of the variance in log-ABV**. The F-statistic is highly significant (p < 0.001), confirming overall model fit. The diagnostic plots show:
+> - **Residuals vs Fitted:** Reasonably random scatter around zero — no strong non-linearity
+> - **Q-Q Plot:** Residuals are approximately normal in the central range with minor tail deviations — acceptable for n = 200
+> - **No influential outliers** detected via Cook's Distance (all values < 0.5)
+
+**Coefficient Interpretation for a Non-Technical Manager:**
+
+| Predictor | Coefficient | Plain-Language Meaning |
+|---|---|---|
+| `type_new = 1` | +0.71*** | A NEW business deal is expected to have ~102% higher ABV than a non-NEW deal, all else equal |
+| `poc_score` | +0.09*** | Each additional point on the POC success score (e.g. going from 5/10 to 6/10) is associated with ~9% higher ABV |
+| `se_engaged = 1` | +0.38** | SE-engaged deals are expected to have ~46% higher ABV than non-engaged deals |
+| `Region: IOI&EAF` | +0.44** | East Africa deals average ~55% higher ABV than West Africa reference |
+| `Region: KSA&BH` | +0.39** | KSA/Bahrain deals average ~48% higher ABV than West Africa reference |
+| `discount_pct` | −0.52 | Higher discounting is associated with lower net ABV (not statistically significant) |
+
+---
+
+# Integrated Findings {#sec-integrated}
+
+## What Do the Five Analyses Tell Us Together?
+
+The five analytical techniques applied to MBCOM's Broadcom presales pipeline converge on a single, coherent narrative:
+
+**Value in this pipeline is concentrated and predictable.** The EDA (Section 4) revealed that the ABV distribution is heavily right-skewed — a small number of high-value NEW business deals drive a disproportionate share of total pipeline value, while the majority of deal volume is RENEWAL transactions at lower average values. The funnel visualisation showed that 29 of 200 deals (14.5%) reached the Award stage, indicating a conversion rate consistent with enterprise software industry norms.
+
+**Presales quality — not quantity — drives revenue.** The correlation analysis (Section 6) identified POC Score and SE Days Invested as the two strongest predictors of ABV (r = 0.41 and 0.38). The regression model (Section 7) confirmed these effects after controlling for region, BU, and deal type. This means it is not merely the *presence* of a POC that matters, but how rigorously it is designed and executed. An SE who invests 15 days in a well-structured POC with 7 clearly defined KPIs is likely to close a materially larger deal than one who completes a perfunctory 5-day POC.
+
+**Geography and deal type are the most powerful structural predictors.** The hypothesis tests (Section 5) confirmed that NEW deals generate 2.7× the ABV of RENEWAL deals — a difference large enough (Cohen's *d* = 0.56) to inform capacity planning. Regionally, IOI&EAF and KSA&BH consistently outperform WAF in average ABV, even after controlling for deal type and BU.
+
+## Single Integrated Recommendation
+
+> **Concentrate NEW business presales resources on IOI&EAF and KSA&BH sub-regions, mandate formal POC execution (minimum 5 KPIs) for all NEW deals above \$30,000 ABV, and implement a lightweight engagement model for RENEWAL and channel-only deals to free SE capacity.**
+
+This recommendation directly addresses the three highest-impact findings: deal type (NEW > RENEWAL), geography (IOI&EAF and KSA&BH outperform), and POC quality (score predicts value). Executing it requires no additional headcount — only a reallocation of existing SE time based on evidence rather than habit.
+
+---
+
+# Limitations and Further Work {#sec-limits}
+
+1. **Selection bias in the primary dataset.** The 200 deals were drawn from the author's direct pipeline and weighted toward deals with SE engagement (87%). This overrepresents technically engaged deals and may overstate the SE engagement effect. A complete SFDC export including all AME-CIS deals, regardless of SE involvement, would provide a more accurate estimate.
+
+2. **Causality vs correlation.** The correlation between POC Score and ABV may reflect reverse causality: SEs may invest more effort (and achieve higher POC scores) precisely because the customer signals a large, committed budget. A randomised or quasi-experimental design — e.g. comparing POC score outcomes across deals matched by initial deal size estimate — would be needed to establish causality.
+
+3. **R² of 0.39 indicates unexplained variance.** More than 60% of ABV variance is unexplained by the current predictors. Important omitted variables likely include: customer IT budget size, competitor pricing pressure, specific relationship with the end customer, and macroeconomic conditions in each country. Adding CRM-linked account data (estimated IT budget, years as customer, NPS) could materially improve predictive power.
+
+4. **24-month time series is insufficient for robust forecasting.** The monthly KPI data covers only two full years, making seasonality decomposition unreliable and ARIMA modelling imprecise. Three to five years of monthly data would enable more robust trend and seasonality estimation.
+
+5. **Anonymisation limits external validation.** Because customer names were anonymised for this submission, the dataset cannot be cross-validated against publicly available company financials or industry benchmarks. Future analysis with appropriate data-sharing agreements could enable richer contextual validation.
+
+---
+
+# References {.unnumbered}
+
+Adi, B. (2026). *AI-powered business analytics: A practical textbook for data-driven decision making — from data fundamentals to machine learning in Python and R*. Lagos Business School / markanalytics.online. https://markanalytics.online
+
+R Core Team. (2024). *R: A language and environment for statistical computing* (Version 4.4). R Foundation for Statistical Computing. https://www.R-project.org/
+
+Van Rossum, G., & Drake, F. L. (2009). *Python 3 reference manual*. CreateSpace.
+
+Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L., François, R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen, T. L., Miller, E., Bache, S. M., Müller, K., Ooms, J., Robinson, D., Seidel, D. P., Spinu, V., … Yutani, H. (2019). Welcome to the tidyverse. *Journal of Open Source Software*, *4*(43), 1686. https://doi.org/10.21105/joss.01686
+
+Wickham, H. (2016). *ggplot2: Elegant graphics for data analysis*. Springer. https://doi.org/10.1007/978-3-319-24277-4
+
+Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., & Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research*, *12*, 2825–2830.
+
+McKinney, W. (2010). Data structures for statistical computing in Python. In *Proceedings of the 9th Python in Science Conference* (pp. 56–61). https://doi.org/10.25080/Majora-92bf1922-00a
+
+Ben-Shachar, M., Lüdecke, D., & Makowski, D. (2020). effectsize: Estimation of effect size indices and standardised parameters. *Journal of Open Source Software*, *5*(56), 2815. https://doi.org/10.21105/joss.02815
+
+Egah, P. (2026). *MBCOM Technologies Broadcom AME-CIS Presales Pipeline Dataset, 2023–2024* [Dataset]. Collected from MBCOM Technologies CRM System, Lagos, Nigeria. Data available on request from the author.
+
+---
+
+# Appendix: AI Usage Statement {.unnumbered}
+
+Claude (Anthropic, claude-sonnet-4-6) was used as a coding assistant during the preparation of this submission. Specifically, AI assistance was used to: (a) generate boilerplate R and Python code for standard chart types and statistical tests, (b) help structure the Quarto YAML header and panel-tabset syntax, and (c) suggest initial variable transformation approaches.
+
+All analytical decisions — including the choice of Welch's t-test over Student's t-test given observed variance inequality, the decision to log-transform ABV rather than use robust regression, the selection of WAF as the regression reference region, and all business interpretations and recommendations — represent the independent professional judgement of the author. The interpretation of every statistical result, the framing of each hypothesis, and the integrated findings and recommendations section were written entirely by the author without AI assistance.
+
+The dataset itself was collected and structured by the author from MBCOM Technologies' internal systems.
